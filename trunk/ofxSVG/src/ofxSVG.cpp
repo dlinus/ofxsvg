@@ -283,15 +283,14 @@ void ofxSVG::parseCircle(){
 
     // Vertexs
     //--------------------------------
-	/*if (!bSetupCircle) setupCircle();
 
-	// use smoothness, if requested:
-	if (bSmoothHinted && drawMode == OF_OUTLINE) startSmoothing();
-    int k = 0;
-	for(int i = 0; i < numCirclePts; i++){
-		obj->vertexs.push_back(ofPoint(x + circlePts[k] * r, y + circlePts[k+1] * radius;));
-		k+=2;
-	}*/
+    int res = 30;
+    float angle = 0.0f;
+    float alpha = M_TWO_PI / (float) res;
+	for(int i = 0; i < res; i++){
+		obj->vertexs.push_back(ofPoint(x + cos(angle) * r, y + sin(angle) * r));
+		angle+=alpha;
+	}
 
     layers[layers.size()-1].objects.push_back(obj);
 }
@@ -347,15 +346,14 @@ void ofxSVG::parseEllipse(){
 
     // Vertexs
     //--------------------------------
-	/*if (!bSetupCircle) setupCircle();
 
-	// use smoothness, if requested:
-	if (bSmoothHinted && drawMode == OF_OUTLINE) startSmoothing();
-    int k = 0;
-	for(int i = 0; i < numCirclePts; i++){
-		obj->vertexs.push_back(ofPoint(x + circlePts[k] * rx * 0.5f, y + circlePts[k+1] * ry * 0.5f));
-		k+=2;
-	}*/
+    int res = 30;
+    float angle = 0.0f;
+    float alpha = M_TWO_PI / (float) res;
+	for(int i = 0; i < res; i++){
+		obj->vertexs.push_back(ofPoint(x + cos(angle) * rx * 0.5f, y + sin(angle) * ry * 0.5f));
+		angle+=alpha;
+	}
 
     layers[layers.size()-1].objects.push_back(obj);
 }
@@ -522,11 +520,16 @@ void ofxSVG::parseText(){
             }
         }
 
-        ofxSVGObject* obj = new ofxSVGObject;
+        ofxSVGText* obj = new ofxSVGText;
+
+        // Shape info
+        //--------------------------------
         obj->type        = ofxSVGObject_Text;
         obj->renderMode  = ofxSVGRender_DisplayList;
         obj->name        = svgXml.getAttribute("id", currentIteration);
 
+        // Display List
+        //--------------------------------
         obj->dl.begin();
         for(int j=0; j<numTSpans; j++){
 
@@ -541,13 +544,22 @@ void ofxSVG::parseText(){
             string fontName = svgXml.getAttribute("tspan", "font-family", "", j);
             fontName        = fontName.substr(1, fontName.length() - 2);
 
+            obj->positions.push_back(ofPoint(x, y));
+            obj->texts.push_back(text);
+            obj->fonts.push_back(fontName+ofToString(fontSize));
+
             // Draw font
             //------------------------------------
             if(svgXml.attributeExists("tspan", "fill", j)){
                 string col = svgXml.getAttribute("tspan", "fill", "", j);
-                ofSetColor(strtol(("0x"+col.substr(1, col.length()-1)).c_str(), NULL, 0));
+                int color = strtol(("0x"+col.substr(1, col.length()-1)).c_str(), NULL, 0);
+                ofSetColor(color);
+                obj->colors.push_back(color);
             }
-            else ofSetColor(0x0);
+            else {
+                ofSetColor(0x0);
+                obj->colors.push_back(0);
+            }
 
             fonts[fontName+ofToString(fontSize)]->drawString(text, x, y);
         }
@@ -574,7 +586,6 @@ void ofxSVG::parseText(){
         fontName        = fontName.substr(1, fontName.length() - 2);
         string col = svgXml.getAttribute("fill", currentIteration);
         string fontExt  = ".ttf";
-
 
         // Check if Font is already loaded
         //------------------------------------
@@ -607,10 +618,17 @@ void ofxSVG::parseText(){
             fonts.insert(make_pair(fontName+ofToString(fontSize), font));
         }
 
-        ofxSVGObject* obj = new ofxSVGObject;
+        ofxSVGText* obj = new ofxSVGText;
+
+        // Shape info
+        //--------------------------------
+
         obj->type        = ofxSVGObject_Text;
         obj->renderMode  = ofxSVGRender_DisplayList;
         obj->name        = svgXml.getAttribute("id", currentIteration);
+
+        // Display List
+        //--------------------------------
 
         obj->dl.begin();
 
@@ -673,10 +691,17 @@ void ofxSVG::parsePath(){
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
 
-    ofxSVGObject* obj = new ofxSVGObject;
+    ofxSVGPath* obj = new ofxSVGPath;
+
+    // Shape info
+    //--------------------------------
+
     obj->type        = ofxSVGObject_Path;
     obj->renderMode  = ofxSVGRender_DisplayList;
     obj->name        = svgXml.getAttribute("id", currentIteration);
+
+    // Display List
+    //--------------------------------
 
     obj->dl.begin();
 
@@ -711,17 +736,9 @@ void ofxSVG::parsePath(){
 
 
 ofPoint ofxSVG::posFromMatrix(string matrix){
-    //if(matrix.find("matrix")!=-1){
-        matrix = matrix.substr(7, matrix.length()-8);
-        vector<string> matrixStrings = ofSplitString(matrix, " ");
-        //if(matrixStrings.size()>=5)
-        return ofPoint(ofToFloat(matrixStrings[4]), ofToFloat(matrixStrings[5]));
-      //  else {
-        //    cout<<"matrix unreonised: "<<matrix<<endl;
-        //}
-    //}
-    //else cout<<"problem"<<matrix<<endl;
-    //return ofPoint();
+    matrix = matrix.substr(7, matrix.length()-8);
+    vector<string> matrixStrings = ofSplitString(matrix, " ");
+    return ofPoint(ofToFloat(matrixStrings[4]), ofToFloat(matrixStrings[5]));
 }
 
 
