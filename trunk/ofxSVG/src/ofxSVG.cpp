@@ -239,7 +239,7 @@ void ofxSVG::parseRect(){
         obj->vertexs.push_back(ofPoint(x, y));
         obj->vertexs.push_back(ofPoint(x+width, y));
         obj->vertexs.push_back(ofPoint(x+width, y+height));
-        obj->vertexs.push_back(ofPoint(x, y));
+        obj->vertexs.push_back(ofPoint(x, y+height));
 
         layers[layers.size()-1].objects.push_back(obj);
     }
@@ -294,11 +294,16 @@ void ofxSVG::parseCircle(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
+        cout<<stroke<<endl;
         int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
-        float r = (rgb >> 16) & 0xFF;
-        float g = (rgb >> 8) & 0xFF;
-        float b = (rgb) & 0xFF;
-        ofSetColor(r,g,b,alpha);
+        if(rgb!=0){
+            float r = (rgb >> 16) & 0xFF;
+            float g = (rgb >> 8) & 0xFF;
+            float b = (rgb) & 0xFF;
+            ofSetColor(r,g,b,alpha);
+        }
+        else ofSetColor(0,0,0,alpha);
+        ofSetLineWidth(1);
         ofCircle(x,y,r);
         if(strokeWeight!="") ofSetLineWidth(1);
     }
