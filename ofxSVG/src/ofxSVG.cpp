@@ -172,10 +172,9 @@ void ofxSVG::parseRect(){
     // Extract Rotation from
     //------------------------------------
     string transform = svgXml.getAttribute("transform", currentIteration);
-
-    string fill = svgXml.getAttribute("fill", currentIteration);
+	string opacity = svgXml.getAttribute("opacity", currentIteration);
+	string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
-    string opacity = svgXml.getAttribute("opacity", currentIteration);
     float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
     if(!(fill=="none" && stroke=="")){
@@ -206,15 +205,18 @@ void ofxSVG::parseRect(){
 
         if(fill!="none"){
             ofFill();
-            if(fill!="") {
-                int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
-                float r = (rgb >> 16) & 0xFF;
-                float g = (rgb >> 8) & 0xFF;
-                float b = (rgb) & 0xFF;
-                ofSetColor(r,g,b,alpha);
-            }
+
+			if(opacity!="") {
+				ofEnableAlphaBlending();
+				int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+				float r = (rgb >> 16) & 0xFF;
+				float g = (rgb >> 8) & 0xFF;
+				float b = (rgb) & 0xFF;
+				ofSetColor(r,g,b,alpha);
+			}
             else ofSetColor(0,0,0,alpha);
             ofRect(x, y,width,height);
+			ofDisableAlphaBlending();
         }
 
         if(stroke!="" && stroke!="none"){
@@ -253,7 +255,6 @@ void ofxSVG::parseCircle(){
     float r     = ofToFloat(svgXml.getAttribute("r", currentIteration));
 
     string id       = svgXml.getAttribute("id", currentIteration);
-
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
     string opacity = svgXml.getAttribute("opacity", currentIteration);
@@ -279,7 +280,8 @@ void ofxSVG::parseCircle(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") {
+        if(opacity!="") {
+			ofEnableAlphaBlending();
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
@@ -288,12 +290,16 @@ void ofxSVG::parseCircle(){
         }
         else ofSetColor(0,0,0,alpha);
         ofCircle(x,y,r);
+		ofDisableAlphaBlending();
     }
 
     if(stroke!="" && stroke!="none"){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
+		if(opacity!="") {
+			ofEnableAlphaBlending();
+		}
         int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
         if(rgb!=0){
             float r = (rgb >> 16) & 0xFF;
@@ -305,6 +311,7 @@ void ofxSVG::parseCircle(){
         ofSetLineWidth(1);
         ofCircle(x,y,r);
         if(strokeWeight!="") ofSetLineWidth(1);
+		ofDisableAlphaBlending();
     }
 
     obj->dl.end();
@@ -332,7 +339,6 @@ void ofxSVG::parseEllipse(){
     float ry     = ofToFloat(svgXml.getAttribute("ry", currentIteration))*2.0;
 
     string id       = svgXml.getAttribute("id", currentIteration);
-
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
     string opacity = svgXml.getAttribute("opacity", currentIteration);
@@ -356,9 +362,10 @@ void ofxSVG::parseEllipse(){
     //--------------------------------
     obj->dl.begin();
 
-    if(fill!="none"){
+    if(fill!="" && fill!="none"){
         ofFill();
-        if(fill!="") {
+        if(opacity!="") {
+			ofEnableAlphaBlending();
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
@@ -367,12 +374,16 @@ void ofxSVG::parseEllipse(){
         }
         else ofSetColor(0,0,0,alpha);
         ofEllipse(x,y,rx,ry);
+		ofDisableAlphaBlending();
     }
 
     if(stroke!="" && stroke!="none"){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
+		if(opacity!="") {
+			ofEnableAlphaBlending();
+		}
         int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
         float r = (rgb >> 16) & 0xFF;
         float g = (rgb >> 8) & 0xFF;
@@ -380,6 +391,7 @@ void ofxSVG::parseEllipse(){
         ofSetColor(r,g,b,alpha);
         ofEllipse(x,y,rx,ry);
         if(strokeWeight!="") ofSetLineWidth(1);
+		ofDisableAlphaBlending();
     }
 
     obj->dl.end();
@@ -434,6 +446,9 @@ void ofxSVG::parseLine(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
+		if(opacity!="") {
+			ofEnableAlphaBlending();
+		}
         int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
         float r = (rgb >> 16) & 0xFF;
         float g = (rgb >> 8) & 0xFF;
@@ -441,6 +456,7 @@ void ofxSVG::parseLine(){
         ofSetColor(r,g,b,alpha);
         ofLine(x1,y1,x2,y2);
         if(strokeWeight!="") ofSetLineWidth(1);
+		ofDisableAlphaBlending();
     }
 
     obj->dl.end();
@@ -486,24 +502,30 @@ void ofxSVG::parsePolygon(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") {
+        if(opacity!="") {
+			ofEnableAlphaBlending();
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
             float b = (rgb) & 0xFF;
             ofSetColor(r,g,b,alpha);
         }
+		
         else ofSetColor(0,0,0,alpha);
 
         ofBeginShape();
         for(int i=0; i<obj->vertexs.size(); i++) ofVertex(obj->vertexs[i].x, obj->vertexs[i].y);
         ofEndShape(OF_CLOSE);
+		ofDisableAlphaBlending();
     }
 
     if(stroke!="" && stroke!="none"){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
+		if(opacity!="") {
+			ofEnableAlphaBlending();
+		}
         int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
         float r = (rgb >> 16) & 0xFF;
         float g = (rgb >> 8) & 0xFF;
@@ -515,6 +537,7 @@ void ofxSVG::parsePolygon(){
         ofEndShape(OF_CLOSE);
 
         if(strokeWeight!="") ofSetLineWidth(1);
+		ofDisableAlphaBlending();
     }
 
     obj->dl.end();
@@ -620,6 +643,9 @@ void ofxSVG::parseText(){
                 float r = (color >> 16) & 0xFF;
                 float g = (color >> 8) & 0xFF;
                 float b = (color) & 0xFF;
+				if(opacity!="") {
+					ofEnableAlphaBlending();
+				}
                 ofSetColor(r,g,b,alpha);
                 obj->colors.push_back(color);
             }
@@ -629,6 +655,7 @@ void ofxSVG::parseText(){
             }
 
             fonts[fontName+ofToString(fontSize)]->drawString(text, x, y);
+			ofDisableAlphaBlending();
         }
         obj->dl.end();
 
