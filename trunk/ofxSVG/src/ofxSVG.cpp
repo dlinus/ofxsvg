@@ -294,7 +294,6 @@ void ofxSVG::parseCircle(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
-        cout<<stroke<<endl;
         int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
         if(rgb!=0){
             float r = (rgb >> 16) & 0xFF;
