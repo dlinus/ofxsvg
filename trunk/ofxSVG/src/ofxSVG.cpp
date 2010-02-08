@@ -842,6 +842,7 @@ void ofxSVG::pathToPoints(string pathStr){
     ofPoint drawPt;
 
     //ofxSvgShape currShape;
+
     ofBeginShape();
 
     vector <string> commandStr = ofSplitString(pathStr, "*");
