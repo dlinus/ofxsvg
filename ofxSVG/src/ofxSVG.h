@@ -1,7 +1,7 @@
 #ifndef OFX_SVG
 #define OFX_SVG
 
-//#define USE_OFXFTGL
+#define USE_OFXFTGL
 
 #include "ofMain.h"
 #include "ofxDisplayList.h"
