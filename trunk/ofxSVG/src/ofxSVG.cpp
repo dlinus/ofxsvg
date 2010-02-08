@@ -175,6 +175,8 @@ void ofxSVG::parseRect(){
 
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
+    string opacity = svgXml.getAttribute("opacity", currentIteration);
+    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
     if(!(fill=="none" && stroke=="")){
 
@@ -204,8 +206,14 @@ void ofxSVG::parseRect(){
 
         if(fill!="none"){
             ofFill();
-            if(fill!="") ofSetColor(strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0));
-            else ofSetColor(0x0);
+            if(fill!="") {
+                int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+                float r = (rgb >> 16) & 0xFF;
+                float g = (rgb >> 8) & 0xFF;
+                float b = (rgb) & 0xFF;
+                ofSetColor(r,g,b,alpha);
+            }
+            else ofSetColor(0,0,0,alpha);
             ofRect(x, y,width,height);
         }
 
@@ -213,7 +221,11 @@ void ofxSVG::parseRect(){
             string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
             if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
             ofNoFill();
-            ofSetColor(strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0));
+            int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+            float r = (rgb >> 16) & 0xFF;
+            float g = (rgb >> 8) & 0xFF;
+            float b = (rgb) & 0xFF;
+            ofSetColor(r,g,b,alpha);
             ofRect(x,y,width,height);
             if(strokeWeight!="") ofSetLineWidth(1);
         }
@@ -244,6 +256,8 @@ void ofxSVG::parseCircle(){
 
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
+    string opacity = svgXml.getAttribute("opacity", currentIteration);
+    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
 
 
@@ -265,8 +279,14 @@ void ofxSVG::parseCircle(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") ofSetColor(strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0));
-        else ofSetColor(0x0);
+        if(fill!="") {
+            int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+            float r = (rgb >> 16) & 0xFF;
+            float g = (rgb >> 8) & 0xFF;
+            float b = (rgb) & 0xFF;
+            ofSetColor(r,g,b,alpha);
+        }
+        else ofSetColor(0,0,0,alpha);
         ofCircle(x,y,r);
     }
 
@@ -274,7 +294,11 @@ void ofxSVG::parseCircle(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
-        ofSetColor(strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0));
+        int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+        float r = (rgb >> 16) & 0xFF;
+        float g = (rgb >> 8) & 0xFF;
+        float b = (rgb) & 0xFF;
+        ofSetColor(r,g,b,alpha);
         ofCircle(x,y,r);
         if(strokeWeight!="") ofSetLineWidth(1);
     }
@@ -286,10 +310,10 @@ void ofxSVG::parseCircle(){
 
     int res = 30;
     float angle = 0.0f;
-    float alpha = M_TWO_PI / (float) res;
+    float theta = M_TWO_PI / (float) res;
 	for(int i = 0; i < res; i++){
 		obj->vertexs.push_back(ofPoint(x + cos(angle) * r, y + sin(angle) * r));
-		angle+=alpha;
+		angle+=theta;
 	}
 
     layers[layers.size()-1].objects.push_back(obj);
@@ -307,6 +331,8 @@ void ofxSVG::parseEllipse(){
 
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
+    string opacity = svgXml.getAttribute("opacity", currentIteration);
+    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
 
     ofxSVGEllipse* obj = new ofxSVGEllipse;
@@ -328,8 +354,14 @@ void ofxSVG::parseEllipse(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") ofSetColor(strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0));
-        else ofSetColor(0x0);
+        if(fill!="") {
+            int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+            float r = (rgb >> 16) & 0xFF;
+            float g = (rgb >> 8) & 0xFF;
+            float b = (rgb) & 0xFF;
+            ofSetColor(r,g,b,alpha);
+        }
+        else ofSetColor(0,0,0,alpha);
         ofEllipse(x,y,rx,ry);
     }
 
@@ -337,7 +369,11 @@ void ofxSVG::parseEllipse(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
-        ofSetColor(strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0));
+        int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+        float r = (rgb >> 16) & 0xFF;
+        float g = (rgb >> 8) & 0xFF;
+        float b = (rgb) & 0xFF;
+        ofSetColor(r,g,b,alpha);
         ofEllipse(x,y,rx,ry);
         if(strokeWeight!="") ofSetLineWidth(1);
     }
@@ -349,10 +385,10 @@ void ofxSVG::parseEllipse(){
 
     int res = 30;
     float angle = 0.0f;
-    float alpha = M_TWO_PI / (float) res;
+    float theta = M_TWO_PI / (float) res;
 	for(int i = 0; i < res; i++){
 		obj->vertexs.push_back(ofPoint(x + cos(angle) * rx * 0.5f, y + sin(angle) * ry * 0.5f));
-		angle+=alpha;
+		angle+=theta;
 	}
 
     layers[layers.size()-1].objects.push_back(obj);
@@ -370,6 +406,8 @@ void ofxSVG::parseLine(){
 
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
+    string opacity = svgXml.getAttribute("opacity", currentIteration);
+    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
     ofxSVGLine* obj = new ofxSVGLine;
 
@@ -392,7 +430,11 @@ void ofxSVG::parseLine(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
-        ofSetColor(strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0));
+        int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+        float r = (rgb >> 16) & 0xFF;
+        float g = (rgb >> 8) & 0xFF;
+        float b = (rgb) & 0xFF;
+        ofSetColor(r,g,b,alpha);
         ofLine(x1,y1,x2,y2);
         if(strokeWeight!="") ofSetLineWidth(1);
     }
@@ -413,6 +455,9 @@ void ofxSVG::parsePolygon(){
     string id       = svgXml.getAttribute("id", currentIteration);
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
+    string opacity = svgXml.getAttribute("opacity", currentIteration);
+    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
+
     vector<string> pointsStrings = ofSplitString(svgXml.getAttribute("points", currentIteration), " ");
 
     ofxSVGPolygon* obj = new ofxSVGPolygon;
@@ -437,8 +482,14 @@ void ofxSVG::parsePolygon(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") ofSetColor(strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0));
-        else ofSetColor(0x0);
+        if(fill!="") {
+            int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+            float r = (rgb >> 16) & 0xFF;
+            float g = (rgb >> 8) & 0xFF;
+            float b = (rgb) & 0xFF;
+            ofSetColor(r,g,b,alpha);
+        }
+        else ofSetColor(0,0,0,alpha);
 
         ofBeginShape();
         for(int i=0; i<obj->vertexs.size(); i++) ofVertex(obj->vertexs[i].x, obj->vertexs[i].y);
@@ -449,7 +500,11 @@ void ofxSVG::parsePolygon(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
-        ofSetColor(strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0));
+        int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+        float r = (rgb >> 16) & 0xFF;
+        float g = (rgb >> 8) & 0xFF;
+        float b = (rgb) & 0xFF;
+        ofSetColor(r,g,b,alpha);
 
         ofBeginShape();
         for(int i=0; i<obj->vertexs.size(); i++) ofVertex(obj->vertexs[i].x, obj->vertexs[i].y);
@@ -476,6 +531,11 @@ void ofxSVG::parseText(){
         // Extract XY From matrix
         //------------------------------------
         ofPoint pos = posFromMatrix(svgXml.getAttribute("transform", currentIteration));
+
+        // Get Alpha
+        //------------------------------------
+        string opacity = svgXml.getAttribute("opacity", currentIteration);
+        float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
         svgXml.pushTag(currentIteration);
 
@@ -553,11 +613,14 @@ void ofxSVG::parseText(){
             if(svgXml.attributeExists("tspan", "fill", j)){
                 string col = svgXml.getAttribute("tspan", "fill", "", j);
                 int color = strtol(("0x"+col.substr(1, col.length()-1)).c_str(), NULL, 0);
-                ofSetColor(color);
+                float r = (color >> 16) & 0xFF;
+                float g = (color >> 8) & 0xFF;
+                float b = (color) & 0xFF;
+                ofSetColor(r,g,b,alpha);
                 obj->colors.push_back(color);
             }
             else {
-                ofSetColor(0x0);
+                ofSetColor(0,0,0,alpha);
                 obj->colors.push_back(0);
             }
 
@@ -576,6 +639,11 @@ void ofxSVG::parseText(){
         // Extract XY From matrix
         //------------------------------------
         ofPoint pos = posFromMatrix(svgXml.getAttribute("transform", currentIteration));
+
+        // Get Alpha
+        //------------------------------------
+        string opacity = svgXml.getAttribute("opacity", currentIteration);
+        float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
         // Parse Current Text Metadata
         //------------------------------------
@@ -635,9 +703,13 @@ void ofxSVG::parseText(){
         // Draw font
         //------------------------------------
         if(col!="" && col!="none"){
-            ofSetColor(strtol(("0x"+col.substr(1, col.length()-1)).c_str(), NULL, 0));
+            int color = strtol(("0x"+col.substr(1, col.length()-1)).c_str(), NULL, 0);
+            float r = (color >> 16) & 0xFF;
+            float g = (color >> 8) & 0xFF;
+            float b = (color) & 0xFF;
+            ofSetColor(r,g,b,alpha);
         }
-        else ofSetColor(0x0);
+        else ofSetColor(0,0,0,alpha);
 
         fonts[fontName+ofToString(fontSize)]->drawString(text, pos.x, pos.y);
 
@@ -690,6 +762,8 @@ void ofxSVG::parsePath(){
 
     string fill = svgXml.getAttribute("fill", currentIteration);
     string stroke = svgXml.getAttribute("stroke", currentIteration);
+    string opacity = svgXml.getAttribute("opacity", currentIteration);
+    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
 
     ofxSVGPath* obj = new ofxSVGPath;
 
@@ -707,8 +781,14 @@ void ofxSVG::parsePath(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") ofSetColor(strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0));
-        else ofSetColor(0x0);
+        if(fill!="") {
+            int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+            float r = (rgb >> 16) & 0xFF;
+            float g = (rgb >> 8) & 0xFF;
+            float b = (rgb) & 0xFF;
+            ofSetColor(r,g,b,alpha);
+        }
+        else ofSetColor(0,0,0,alpha);
 
         pathToPoints(sepPath);
     }
@@ -717,7 +797,11 @@ void ofxSVG::parsePath(){
         string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
         if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
         ofNoFill();
-        ofSetColor(strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0));
+        int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+        float r = (rgb >> 16) & 0xFF;
+        float g = (rgb >> 8) & 0xFF;
+        float b = (rgb) & 0xFF;
+        ofSetColor(r,g,b,alpha);
 
         pathToPoints(sepPath);
 
