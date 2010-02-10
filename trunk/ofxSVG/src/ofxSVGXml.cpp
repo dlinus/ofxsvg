@@ -36,7 +36,7 @@ string ofxSVGXml::getAttribute(const string& attribute, int which){
 	TiXmlElement* child = storedHandle.FirstChildElement().ToElement();
 	for (; i<which && child; i++, child = child->NextSiblingElement()){}
     const char* attributeValue;
-    if(i==which) attributeValue = child->Attribute(attribute.c_str());
+    if(child && i==which) attributeValue = child->Attribute(attribute.c_str());
     return (attributeValue!=NULL) ? attributeValue : "";
 }
 bool ofxSVGXml::pushTag(int which){

@@ -84,7 +84,7 @@ class ofxSVG{
 
         // Taken from Theo ofxSVGLoader
         //----------------------------------
-        void pathToPoints(string pathStr);
+        void pathToPoints(string pathStr, ofxSVGPath* obj);
 
         // Matrix parsing
         //----------------------------------

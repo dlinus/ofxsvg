@@ -3,7 +3,7 @@
 
 //--------------------------------------------------------------
 void ofxSVG::load(string svgPath){
-	
+
     bVerbose = true;
 
     if(bVerbose){
@@ -74,13 +74,13 @@ void ofxSVG::load(string svgPath){
             svgXml.pushTag("g");
             pops++;
         }
-	
+
 	// while building the display lists, we want smoothing
 	// later on it can be disabled
 	// -------------------------------
 	ofSetCircleResolution(80);
 	ofEnableSmoothing();
-		
+
 
             // Read Number of Layers
             //----------------------------------------
@@ -129,7 +129,7 @@ void ofxSVG::load(string svgPath){
     }
 
     TiXmlBase::SetCondenseWhiteSpace(true);
-	
+
 	// now that the DLs are built, go ahead and disable blending
 	ofDisableSmoothing();
 }
@@ -173,8 +173,10 @@ void ofxSVG::parseLayer(){
 //-------------------------------------------------------------------------------------
 
 void ofxSVG::parseRect(){
-    float x         = ofToFloat(svgXml.getAttribute("x", currentIteration));
-    float y         = ofToFloat(svgXml.getAttribute("y", currentIteration));
+    string xStr     = svgXml.getAttribute("x", currentIteration);
+    string yStr     = svgXml.getAttribute("y", currentIteration);
+    float x         = (xStr!="") ? ofToFloat(xStr) : 0.0f;
+    float y         = (yStr!="") ? ofToFloat(yStr) : 0.0f;
     float width     = ofToFloat(svgXml.getAttribute("width", currentIteration));
     float height    = ofToFloat(svgXml.getAttribute("height", currentIteration));
     string id       = svgXml.getAttribute("id", currentIteration);
@@ -215,9 +217,9 @@ void ofxSVG::parseRect(){
 
         if(fill!="none"){
             ofFill();
-
-			if(opacity!="") {
+			if(opacity!="")
 				ofEnableAlphaBlending();
+            if(fill!=""){
 				int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
 				float r = (rgb >> 16) & 0xFF;
 				float g = (rgb >> 8) & 0xFF;
@@ -260,8 +262,10 @@ void ofxSVG::parseRect(){
 //-------------------------------------------------------------------------------------
 
 void ofxSVG::parseCircle(){
-    float x     = ofToFloat(svgXml.getAttribute("cx", currentIteration));
-    float y     = ofToFloat(svgXml.getAttribute("cy", currentIteration));
+    string xStr     = svgXml.getAttribute("cx", currentIteration);
+    string yStr     = svgXml.getAttribute("cy", currentIteration);
+    float x         = (xStr!="") ? ofToFloat(xStr) : 0.0f;
+    float y         = (yStr!="") ? ofToFloat(yStr) : 0.0f;
     float r     = ofToFloat(svgXml.getAttribute("r", currentIteration));
 
     string id       = svgXml.getAttribute("id", currentIteration);
@@ -290,8 +294,9 @@ void ofxSVG::parseCircle(){
 
     if(fill!="none"){
         ofFill();
-        if(opacity!="") {
-			ofEnableAlphaBlending();
+        if(opacity!="")
+            ofEnableAlphaBlending();
+        if(fill!=""){
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
@@ -343,8 +348,10 @@ void ofxSVG::parseCircle(){
 //-------------------------------------------------------------------------------------
 
 void ofxSVG::parseEllipse(){
-    float x     = ofToFloat(svgXml.getAttribute("cx", currentIteration));
-    float y     = ofToFloat(svgXml.getAttribute("cy", currentIteration));
+    string xStr     = svgXml.getAttribute("cx", currentIteration);
+    string yStr     = svgXml.getAttribute("cy", currentIteration);
+    float x         = (xStr!="") ? ofToFloat(xStr) : 0.0f;
+    float y         = (yStr!="") ? ofToFloat(yStr) : 0.0f;
     float rx     = ofToFloat(svgXml.getAttribute("rx", currentIteration))*2.0;
     float ry     = ofToFloat(svgXml.getAttribute("ry", currentIteration))*2.0;
 
@@ -371,12 +378,13 @@ void ofxSVG::parseEllipse(){
     // Display List
     //--------------------------------
     obj->dl.begin();
-	
+
 
     if(fill!="" && fill!="none"){
         ofFill();
-        if(opacity!="") {
-			ofEnableAlphaBlending();
+        if(opacity!="")
+            ofEnableAlphaBlending();
+        if(fill!=""){
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
@@ -513,17 +521,16 @@ void ofxSVG::parsePolygon(){
 
     if(fill!="none"){
         ofFill();
-        if(opacity!="") {
-			ofEnableAlphaBlending();
+        if(opacity!="")
+            ofEnableAlphaBlending();
+        if(fill!=""){
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
             float b = (rgb) & 0xFF;
             ofSetColor(r,g,b,alpha);
         }
-		
         else ofSetColor(0,0,0,alpha);
-
         ofBeginShape();
         for(int i=0; i<obj->vertexs.size(); i++) ofVertex(obj->vertexs[i].x, obj->vertexs[i].y);
         ofEndShape(OF_CLOSE);
@@ -827,7 +834,9 @@ void ofxSVG::parsePath(){
 
     if(fill!="none"){
         ofFill();
-        if(fill!="") {
+        if(opacity!="")
+            ofEnableAlphaBlending();
+        if(fill!=""){
             int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
             float r = (rgb >> 16) & 0xFF;
             float g = (rgb >> 8) & 0xFF;
@@ -836,7 +845,7 @@ void ofxSVG::parsePath(){
         }
         else ofSetColor(0,0,0,alpha);
 
-        pathToPoints(sepPath);
+        pathToPoints(sepPath, obj);
     }
 
     if(stroke!="" && stroke!="none"){
@@ -849,7 +858,7 @@ void ofxSVG::parsePath(){
         float b = (rgb) & 0xFF;
         ofSetColor(r,g,b,alpha);
 
-        pathToPoints(sepPath);
+        pathToPoints(sepPath, obj);
 
         if(strokeWeight!="") ofSetLineWidth(1);
     }
@@ -884,10 +893,8 @@ float ofxSVG::rotFromMatrix(string matrix){
 
 // Taken from Theo ofxSVGLoader
 //--------------------------------------------------------------------
-void ofxSVG::pathToPoints(string pathStr){
+void ofxSVG::pathToPoints(string pathStr, ofxSVGPath* obj){
     ofPoint drawPt;
-
-    //ofxSvgShape currShape;
 
     ofBeginShape();
 
@@ -930,6 +937,7 @@ void ofxSVG::pathToPoints(string pathStr){
                 drawPt.y = coords[1];
             }
             ofVertex(drawPt.x, drawPt.y);
+            obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
             lastPointIsBezier = false;
             points++;
         }
@@ -949,6 +957,7 @@ void ofxSVG::pathToPoints(string pathStr){
                     drawPt.y = coords[j+0];
                 }
                 ofVertex(drawPt.x, drawPt.y);
+                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
                 lastPointIsBezier = false;
                 points++;
             }
@@ -969,6 +978,7 @@ void ofxSVG::pathToPoints(string pathStr){
                     drawPt.x = coords[j+0];
                 }
                 ofVertex(drawPt.x, drawPt.y);
+                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
                 lastPointIsBezier = false;
                 points++;
             }
@@ -991,6 +1001,7 @@ void ofxSVG::pathToPoints(string pathStr){
                     drawPt.y = coords[j+1];
                 }
                 ofVertex(drawPt.x, drawPt.y);
+                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
                 lastPointIsBezier = false;
                 points++;
             }
@@ -1024,6 +1035,7 @@ void ofxSVG::pathToPoints(string pathStr){
                     drawPt.y = coords[j+5];
                 }
                 ofBezierVertex(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y);
+                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y,1));
                 lastBezierC2 = ofPoint(c2x, c2y);
                 lastPointIsBezier = true;
                 points++;
@@ -1072,6 +1084,7 @@ void ofxSVG::pathToPoints(string pathStr){
                     drawPt.y = coords[j+3];
                 }
                 ofBezierVertex(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y);
+                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y, 1));
                 lastPointIsBezier = true;
                 lastBezierC2 = ofPoint(c2x, c2y);
                 points++;
@@ -1118,17 +1131,17 @@ void ofxSVG::createRootSvg() {
 
 
 void ofxSVG::addLayer(string layerName){
-	
+
 	if(saveXml.getValue("svg", "", 0) == "") {
 		createRootSvg();
 	}
 	saveXml.pushTag("svg",0);
 	saveXml.pushTag("g", 0);
-	
+
 }
 
 void ofxSVG::rect(float x, float y, float w, float h) {
-	
+
 	saveXml.pushTag("svg", 0);
 	saveXml.pushTag("rect", 0);// <rect
 	saveXml.setAttribute("rect", "height", h, 0);
@@ -1136,10 +1149,10 @@ void ofxSVG::rect(float x, float y, float w, float h) {
 	saveXml.setAttribute("rect", "x", x, 0);
 	saveXml.setAttribute("rect", "y", y, 0);
 	saveXml.popTag();
-	
+
 }
 void ofxSVG::ellipse(float x, float y, float rx, float ry) {
-	
+
 	saveXml.pushTag("svg", 0);
 	saveXml.pushTag("ellipse", 0);
 	saveXml.setAttribute("ellipse", "ry", ry/2.0, 0);
@@ -1147,11 +1160,11 @@ void ofxSVG::ellipse(float x, float y, float rx, float ry) {
 	saveXml.setAttribute("circle", "cx", x, 0);
 	saveXml.setAttribute("circle", "cy", y, 0);
 	saveXml.popTag();
-	
+
 }
 void ofxSVG::circle(float x, float y, float r) {
 
-	
+
 	// need a way to get the current color, stroke settings...hmm.
 	// probably something like: current_vals;
 	saveXml.pushTag("svg", 0);
@@ -1185,22 +1198,22 @@ void ofxSVG::vertex(float x, float y){
 
 	if(currentAttributes["drawingpath"] != "" && currentAttributes["drawingpath"] != "false") {
 	}
-	
+
 	if(currentAttributes["drawingpolygon"] != "" && currentAttributes["drawingpolygon"] != "false") {
 	}
 }
 void ofxSVG::bezierVertex(float x, float y) {
-	
+
 	if(currentAttributes["drawingpath"] != "" && currentAttributes["drawingpath"] != "false") {
 	}
-	
+
 	if(currentAttributes["drawingpolygon"] != "" && currentAttributes["drawingpolygon"] != "false") {
 	}
 
 }
 void ofxSVG::stroke(string colorHex, int weight) {
 	currentAttributes["stroke"] = colorHex;
-	
+
 	stringstream s;
 	s << weight;
 	currentAttributes["strokeweight"] = s.str();
@@ -1227,7 +1240,7 @@ void ofxSVG::setOpacity(float percent) {
 }
 
 void ofxSVG::translate(float tx, float ty) {
-	
+
 	stringstream s;
 	s << tx;
 	currentAttributes["translation"] = "transform(translate("+s.str();
