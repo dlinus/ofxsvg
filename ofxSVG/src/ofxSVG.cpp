@@ -3,6 +3,7 @@
 
 //--------------------------------------------------------------
 void ofxSVG::load(string svgPath){
+	
     bVerbose = true;
 
     if(bVerbose){
@@ -73,6 +74,13 @@ void ofxSVG::load(string svgPath){
             svgXml.pushTag("g");
             pops++;
         }
+	
+	// while building the display lists, we want smoothing
+	// later on it can be disabled
+	// -------------------------------
+	ofSetCircleResolution(80);
+	ofEnableSmoothing();
+		
 
             // Read Number of Layers
             //----------------------------------------
@@ -121,7 +129,9 @@ void ofxSVG::load(string svgPath){
     }
 
     TiXmlBase::SetCondenseWhiteSpace(true);
-
+	
+	// now that the DLs are built, go ahead and disable blending
+	ofDisableSmoothing();
 }
 
 // Parsing
@@ -361,6 +371,7 @@ void ofxSVG::parseEllipse(){
     // Display List
     //--------------------------------
     obj->dl.begin();
+	
 
     if(fill!="" && fill!="none"){
         ofFill();
@@ -399,7 +410,7 @@ void ofxSVG::parseEllipse(){
     // Vertexs
     //--------------------------------
 
-    int res = 30;
+    int res = 300;
     float angle = 0.0f;
     float theta = M_TWO_PI / (float) res;
 	for(int i = 0; i < res; i++){
@@ -598,12 +609,14 @@ void ofxSVG::parseText(){
                 // Load font and add to font map
                 //--------------------------------
                 #ifdef USE_OFXFTGL
-                    font->loadFont("fonts/"+fontName+fontExt, fontSize);
-                #else
-                    font->loadFont("fonts/"+fontName+fontExt, fontSize*0.75f, true, true, true);
-                #endif
+					//font->loadFont("fonts/"+fontName+fontExt, fontSize);
+					fonts[fontName+ofToString(fontSize)].loadFont("fonts/"+fontName+fontExt, fontSize);
 
-                fonts.insert(make_pair(fontName+ofToString(fontSize), font));
+                #else
+					fonts[fontName+ofToString(fontSize)].loadFont("fonts/"+fontName+fontExt, fontSize*0.75f, true, true, true);
+				#endif
+
+                //fonts.insert(make_pair(fontName+ofToString(fontSize), font));
             }
         }
 
@@ -654,7 +667,7 @@ void ofxSVG::parseText(){
                 obj->colors.push_back(0);
             }
 
-            fonts[fontName+ofToString(fontSize)]->drawString(text, x, y);
+            fonts[fontName+ofToString(fontSize)].drawString(text, x, y);
 			ofDisableAlphaBlending();
         }
         obj->dl.end();
@@ -688,11 +701,13 @@ void ofxSVG::parseText(){
 
         // Check if Font is already loaded
         //------------------------------------
-        if(fonts.count(fontName+ofToString(fontSize)) == 0){
-            #ifdef USE_OFXFTGL
-                ofxFTGLFont* font = new ofxFTGLFont();
+        //if(fonts.count(fontName+ofToString(fontSize)) == 0){
+
+		if(fonts.find(fontName+ofToString(fontSize)) == fonts.end()){
+			#ifdef USE_OFXFTGL
+			// ofxFTGLFont* font = new ofxFTGLFont();
             #else
-                ofTrueTypeFont* font = new ofTrueTypeFont();
+			//   ofTrueTypeFont* font = new ofTrueTypeFont();
             #endif
 
             // Find Font Extension
@@ -709,12 +724,12 @@ void ofxSVG::parseText(){
             // Load font and add to font map
             //--------------------------------
             #ifdef USE_OFXFTGL
-                font->loadFont("fonts/"+fontName+fontExt, fontSize);
+                fonts[fontName+ofToString(fontSize)].loadFont("fonts/"+fontName+fontExt, fontSize);
             #else
-                font->loadFont("fonts/"+fontName+fontExt, fontSize*0.75f, true, true, true);
+                fonts[fontName+ofToString(fontSize)].loadFont("fonts/"+fontName+fontExt, fontSize*0.75f, true, true, true);
             #endif
 
-            fonts.insert(make_pair(fontName+ofToString(fontSize), font));
+			//            fonts.insert(make_pair(fontName+ofToString(fontSize), font));
         }
 
         ofxSVGText* obj = new ofxSVGText;
@@ -742,7 +757,7 @@ void ofxSVG::parseText(){
         }
         else ofSetColor(0,0,0,alpha);
 
-        fonts[fontName+ofToString(fontSize)]->drawString(text, pos.x, pos.y);
+        fonts[fontName+ofToString(fontSize)].drawString(text, pos.x, pos.y);
 
         obj->dl.end();
 
@@ -1087,4 +1102,139 @@ void ofxSVG::drawLayer(string layerName){
 void ofxSVG::drawLayer(int i){
     layers[i].draw();
 }
+
 //-------------------------------------------------------------------------
+// begin save
+//-------------------------------------------------------------------------
+
+/*
+void ofxSVG::createRootSvg() {
+	saveXml.addTag("svg");
+	saveXml.addAttribute("svg", "xmlns", "http://www.w3.org/2000/svg", 0);
+	saveXml.addAttribute("svg", "xmlns:xlink", "http://www.w3.org/1999/xlink", 0);
+	saveXml.addAttribute("svg", "version", "1.1", 0);
+
+}
+
+
+void ofxSVG::addLayer(string layerName){
+	
+	if(saveXml.getValue("svg", "", 0) == "") {
+		createRootSvg();
+	}
+	saveXml.pushTag("svg",0);
+	saveXml.pushTag("g", 0);
+	
+}
+
+void ofxSVG::rect(float x, float y, float w, float h) {
+	
+	saveXml.pushTag("svg", 0);
+	saveXml.pushTag("rect", 0);// <rect
+	saveXml.setAttribute("rect", "height", h, 0);
+	saveXml.setAttribute("rect", "width", w, 0);
+	saveXml.setAttribute("rect", "x", x, 0);
+	saveXml.setAttribute("rect", "y", y, 0);
+	saveXml.popTag();
+	
+}
+void ofxSVG::ellipse(float x, float y, float rx, float ry) {
+	
+	saveXml.pushTag("svg", 0);
+	saveXml.pushTag("ellipse", 0);
+	saveXml.setAttribute("ellipse", "ry", ry/2.0, 0);
+	saveXml.setAttribute("ellipse", "rx", rx/2.0, 0);
+	saveXml.setAttribute("circle", "cx", x, 0);
+	saveXml.setAttribute("circle", "cy", y, 0);
+	saveXml.popTag();
+	
+}
+void ofxSVG::circle(float x, float y, float r) {
+
+	
+	// need a way to get the current color, stroke settings...hmm.
+	// probably something like: current_vals;
+	saveXml.pushTag("svg", 0);
+	saveXml.pushTag("circle", 0);
+	saveXml.setAttribute("circle", "r", r/2.0, 0);
+	saveXml.setAttribute("circle", "cx", x, 0);
+	saveXml.setAttribute("circle", "cy", y, 0);
+	saveXml.popTag();
+}
+
+
+
+void ofxSVG::beginPolygon(){
+	currentAttributes["drawingpolygon"] = "true";
+
+}
+void ofxSVG::endPolygon(){
+	currentAttributes["drawingpolygon"] = "false";
+}
+
+void ofxSVG::beginPath() {
+
+	currentAttributes["drawingpath"] = "true";
+}
+void ofxSVG::endPath() {
+	currentAttributes["drawingpath"] = "false";
+
+}
+
+void ofxSVG::vertex(float x, float y){
+
+	if(currentAttributes["drawingpath"] != "" && currentAttributes["drawingpath"] != "false") {
+	}
+	
+	if(currentAttributes["drawingpolygon"] != "" && currentAttributes["drawingpolygon"] != "false") {
+	}
+}
+void ofxSVG::bezierVertex(float x, float y) {
+	
+	if(currentAttributes["drawingpath"] != "" && currentAttributes["drawingpath"] != "false") {
+	}
+	
+	if(currentAttributes["drawingpolygon"] != "" && currentAttributes["drawingpolygon"] != "false") {
+	}
+
+}
+void ofxSVG::stroke(string colorHex, int weight) {
+	currentAttributes["stroke"] = colorHex;
+	
+	stringstream s;
+	s << weight;
+	currentAttributes["strokeweight"] = s.str();
+
+
+}
+
+void ofxSVG::fill(string colorHex) {
+
+	currentAttributes["color"] = colorHex;
+}
+
+void ofxSVG::noFill() {
+
+	currentAttributes["color"] = "";
+}
+void ofxSVG::noStroke(){
+	currentAttributes["stroke"] = "";
+}
+
+void ofxSVG::setOpacity(float percent) {
+
+	currentAttributes["opacity"] = "percent";
+}
+
+void ofxSVG::translate(float tx, float ty) {
+	
+	stringstream s;
+	s << tx;
+	currentAttributes["translation"] = "transform(translate("+s.str();
+	s << ty;
+	currentAttributes["translation"] += " "+s.str()+")";
+}
+void ofxSVG::rotate(float r) {2}
+
+void ofxSVG::pushMatrix() {}
+void ofxSVG::popMatrix() {}*/
