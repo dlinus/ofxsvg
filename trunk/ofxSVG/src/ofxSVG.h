@@ -48,7 +48,7 @@ class ofxSVG{
 		void vertex(float x, float y);                      /*not implemented*/
 		void bezierVertex(float x, float y);                /*not implemented*/
 
-		void stroke(string colorHex);                       /*not implemented*/
+		void stroke(string colorHex, int weight);                       /*not implemented*/
 		void fill(string colorHex);                         /*not implemented*/
 
 		void noFill();                                      /*not implemented*/
@@ -94,9 +94,9 @@ class ofxSVG{
         // Fonts map
         //--------------------------------------------
         #ifdef USE_OFXFTGL
-            map<string, ofxFTGLFont*> fonts;
+            map<string, ofxFTGLFont> fonts;
         #else
-            map<string, ofTrueTypeFont*> fonts;
+            map<string, ofTrueTypeFont> fonts;
         #endif
 
         // SVG Data/Infos
@@ -111,7 +111,15 @@ class ofxSVG{
         // XML Stuffs
         //----------------------------------
         ofxSVGXml               svgXml;
-
+	
+		// save stuffs
+		ofxSVGXml				saveXml;
+		map<string, string>		currentAttributes;
+	
+		//  create root
+        //----------------------------------
+		void createRootSvg();
+	
         // Debug
         //----------------------------------
         bool                    bVerbose;
