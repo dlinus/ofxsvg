@@ -9,6 +9,7 @@
 
 #include "ofxSVGXml.h"
 #include "ofxSVGTypes.h"
+#include "ofxVectorMath.h"
 
 //-------------------------------------------------
 
@@ -46,8 +47,10 @@ class ofxSVG{
 		void endPath();                                     /*not implemented*/
 
 		void vertex(float x, float y);                      /*not implemented*/
-		void bezierVertex(float x, float y);                /*not implemented*/
-
+		//void bezierVertex(float x, float y);                /*not implemented*/
+		void bezierVertex(float x0, float y0, float x1, float y1);
+		void bezierQuadraticVertex(float x0, float y0, float x1, float y1);
+		void bezierVertex(float x0, float y0, float x1, float y1, float x2, float y2);
 		void stroke(string colorHex, int weight);                       /*not implemented*/
 		void fill(string colorHex);                         /*not implemented*/
 
@@ -65,6 +68,7 @@ class ofxSVG{
 		void setLayerActive(string layerName);               /*not implemented*/
 
 		string      getLayerActive(string layerName);        /*not implemented*/
+		void saveToFile(string filename);	
 
 		vector< ofxSVGLayer >   layers;
     private:
@@ -113,8 +117,13 @@ class ofxSVG{
         ofxSVGXml               svgXml;
 	
 		// save stuffs
+		int						currentSaveNode;
 		ofxSVGXml				saveXml;
 		map<string, string>		currentAttributes;
+		vector<ofxMatrix3x3>	matrices; 
+		string createAttribute(string element, ...);
+		void matrixFromString(string smat, ofxMatrix3x3 mat);
+		void stringFromMatrix(string* smat, ofxMatrix3x3 mat);
 	
 		//  create root
         //----------------------------------

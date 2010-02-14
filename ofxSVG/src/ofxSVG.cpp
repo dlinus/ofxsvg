@@ -1120,7 +1120,7 @@ void ofxSVG::drawLayer(int i){
 // begin save
 //-------------------------------------------------------------------------
 
-/*
+
 void ofxSVG::createRootSvg() {
 	saveXml.addTag("svg");
 	saveXml.addAttribute("svg", "xmlns", "http://www.w3.org/2000/svg", 0);
@@ -1140,25 +1140,35 @@ void ofxSVG::addLayer(string layerName){
 
 }
 
+void ofxSVG::saveToFile(string filename) {
+	saveXml.saveFile(filename);
+}
+
 void ofxSVG::rect(float x, float y, float w, float h) {
 
 	saveXml.pushTag("svg", 0);
-	saveXml.pushTag("rect", 0);// <rect
+	//saveXml.pushTag("rect", 0);// <rect
+	saveXml.addTag("rect");
 	saveXml.setAttribute("rect", "height", h, 0);
 	saveXml.setAttribute("rect", "width", w, 0);
 	saveXml.setAttribute("rect", "x", x, 0);
 	saveXml.setAttribute("rect", "y", y, 0);
+	saveXml.setAttribute("rect", "fill", currentAttributes["color"], 0);
+	saveXml.setAttribute("rect", "stroke", currentAttributes["stroke"], 0);
+	saveXml.setAttribute("rect", "stroke-width", currentAttributes["strokewidth"], 0);
 	saveXml.popTag();
 
 }
 void ofxSVG::ellipse(float x, float y, float rx, float ry) {
 
-	saveXml.pushTag("svg", 0);
-	saveXml.pushTag("ellipse", 0);
+	saveXml.addTag("ellipse");
 	saveXml.setAttribute("ellipse", "ry", ry/2.0, 0);
 	saveXml.setAttribute("ellipse", "rx", rx/2.0, 0);
-	saveXml.setAttribute("circle", "cx", x, 0);
-	saveXml.setAttribute("circle", "cy", y, 0);
+	saveXml.setAttribute("ellipse", "cx", x, 0);
+	saveXml.setAttribute("ellipse", "cy", y, 0);
+	saveXml.setAttribute("ellipse", "fill", currentAttributes["color"], 0);
+	saveXml.setAttribute("ellipse", "stroke", currentAttributes["stroke"], 0);
+	saveXml.setAttribute("ellipse", "stroke-width", currentAttributes["strokewidth"], 0);
 	saveXml.popTag();
 
 }
@@ -1168,10 +1178,13 @@ void ofxSVG::circle(float x, float y, float r) {
 	// need a way to get the current color, stroke settings...hmm.
 	// probably something like: current_vals;
 	saveXml.pushTag("svg", 0);
-	saveXml.pushTag("circle", 0);
+	saveXml.addTag("circle");
 	saveXml.setAttribute("circle", "r", r/2.0, 0);
 	saveXml.setAttribute("circle", "cx", x, 0);
 	saveXml.setAttribute("circle", "cy", y, 0);
+	saveXml.setAttribute("circle", "fill", currentAttributes["color"], 0);
+	saveXml.setAttribute("circle", "stroke", currentAttributes["stroke"], 0);
+	saveXml.setAttribute("circle", "stroke-width", currentAttributes["strokewidth"], 0);
 	saveXml.popTag();
 }
 
@@ -1179,6 +1192,12 @@ void ofxSVG::circle(float x, float y, float r) {
 
 void ofxSVG::beginPolygon(){
 	currentAttributes["drawingpolygon"] = "true";
+	
+	saveXml.pushTag("svg", 0);
+	saveXml.addTag("polygon");
+	saveXml.setAttribute("polygon", "fill", currentAttributes["color"], 0);
+	saveXml.setAttribute("polygon", "stroke", currentAttributes["stroke"], 0);
+	saveXml.setAttribute("polygon", "stroke-width", currentAttributes["strokewidth"], 0);
 
 }
 void ofxSVG::endPolygon(){
@@ -1188,35 +1207,81 @@ void ofxSVG::endPolygon(){
 void ofxSVG::beginPath() {
 
 	currentAttributes["drawingpath"] = "true";
+	saveXml.pushTag("svg", 0);
+	saveXml.addTag("path");
+	saveXml.setAttribute("path", "fill", currentAttributes["color"], 0);
+	saveXml.setAttribute("path", "stroke", currentAttributes["stroke"], 0);
+	saveXml.setAttribute("path", "stroke-width", currentAttributes["strokewidth"], 0);
+	
 }
 void ofxSVG::endPath() {
 	currentAttributes["drawingpath"] = "false";
-
+	
+	string currentString;
+	
+	saveXml.pushTag("svg");
+	stringstream s;
+	currentString = saveXml.getAttribute("path", "d", "");
+	if(currentString.length() > 1) { // i.e. has a path already been started?
+		
+		currentString += "Z";		
+		saveXml.setAttribute("path", "d", s.str(), currentSaveNode);
+	
+	}
 }
 
 void ofxSVG::vertex(float x, float y){
 
+	string currentPath;
 	if(currentAttributes["drawingpath"] != "" && currentAttributes["drawingpath"] != "false") {
+		saveXml.pushTag("svg", 0);
+		currentPath = saveXml.getAttribute("path", "points", "", 0);
+		stringstream s;
+		s << x << "," << y << " ";
+		currentPath+=s.str();
+		saveXml.setAttribute("path", "points", currentPath, 0);
 	}
 
 	if(currentAttributes["drawingpolygon"] != "" && currentAttributes["drawingpolygon"] != "false") {
+		saveXml.pushTag("svg", 0);
+		currentPath = saveXml.getAttribute("polygon", "points", "", 0);
+		stringstream s;
+		s << x << "," << y << " ";
+		currentPath+=s.str();
+		saveXml.setAttribute("polygon", "points", currentPath, 0);
 	}
 }
-void ofxSVG::bezierVertex(float x, float y) {
 
+// this is going to be a tough one
+// because we'll have to calculate the next
+// point
+void ofxSVG::bezierVertex(float x0, float y0, float x1, float y1, float x2, float y2) {
+
+	//
+	string currentString;
 	if(currentAttributes["drawingpath"] != "" && currentAttributes["drawingpath"] != "false") {
-	}
+		saveXml.pushTag("svg");
+		stringstream s;
+		currentString = saveXml.getAttribute("path", "d", "");
+		if(currentString.length() > 1) { // i.e. has a path already been started?
 
-	if(currentAttributes["drawingpolygon"] != "" && currentAttributes["drawingpolygon"] != "false") {
-	}
+			s << " Q "<< x0 << " "<< x0 << " "<< y0 << " "<< x1 << " "<< y1 << " "<< x2 << " "<< y2 << " ";
 
+		} else {
+			s << " M "<< x0 << " "<< x0 << " "<< y0 << " "<< x1 << " "<< y1 << " "<< x2 << " "<< y2 << " ";
+
+		}
+
+		saveXml.setAttribute("path", "d", s.str(), currentSaveNode);
+		currentAttributes["drawingpath"] = s.str();
+	}
 }
 void ofxSVG::stroke(string colorHex, int weight) {
 	currentAttributes["stroke"] = colorHex;
 
 	stringstream s;
 	s << weight;
-	currentAttributes["strokeweight"] = s.str();
+	currentAttributes["strokewidth"] = s.str();
 
 
 }
@@ -1241,13 +1306,106 @@ void ofxSVG::setOpacity(float percent) {
 
 void ofxSVG::translate(float tx, float ty) {
 
+	/*	//one way to do this
 	stringstream s;
-	s << tx;
-	currentAttributes["translation"] = "transform(translate("+s.str();
-	s << ty;
-	currentAttributes["translation"] += " "+s.str()+")";
+	s << "transform(translate(" << tx << " " << ")";
+	currentAttributes["translation"] += " "+s.str()+")";*/
+	
+	//another
+	
+	if(currentAttributes["matrix"] != "") {
+		ofxMatrix3x3 m = matrices[matrices.size() - 1];
+		m.c += tx;
+		m.f += ty;
+		string s;
+		stringFromMatrix(&s, matrices[matrices.size() - 1]);
+		currentAttributes["matrix"] = s;
+	}
 }
-void ofxSVG::rotate(float r) {2}
+void ofxSVG::rotate(float r) {
+	
+	// one way to do this
+	//stringstream s;
+	//s << "rotation(" << r << ")";
+	//currentAttributes["rotation"] = s.str(); 
 
-void ofxSVG::pushMatrix() {}
-void ofxSVG::popMatrix() {}*/
+	if(currentAttributes["matrix"] != "") {
+		ofxMatrix3x3 m = matrices[matrices.size() - 1];
+		m.a += cos(r);
+		m.b += -sin(r);
+		m.d += sin(r);
+		m.e += cos(r);
+		matrices.push_back(m);
+	}
+}
+
+void ofxSVG::pushMatrix() {
+	// how to get this to work?
+	// one option is a vector of transform matrices that are just summed up
+	// another I suppose would be to see if SVG supports using multiple
+	// matrices, but that 
+	if(currentAttributes["matrix"] != "") {
+		
+		ofxMatrix3x3 m;		
+		m = matrices[matrices.size() - 1]; // build on the old one
+		matrices.push_back(m);// this just copies the matrix over but it should be fine
+	}
+	
+}
+void ofxSVG::popMatrix() {
+	if(currentAttributes["matrix"] != "") {
+		
+		matrices.pop_back();
+		if(matrices.size() == 0) {
+			currentAttributes["matrix"] = "";
+		} else {
+			string s;
+			stringFromMatrix(&s, matrices[matrices.size() - 1]);
+			currentAttributes["matrix"] = s;
+
+		}
+	}
+	
+}
+
+string ofxSVG::createAttribute(string element, ...) { // va_args ftw!
+
+	int i, numberArgs;
+	va_list vl;
+	va_start(vl,numberArgs);
+	va_arg(vl,int);
+	for(i = 0; i<numberArgs; i++) {
+		
+		
+	}
+}
+
+void ofxSVG::matrixFromString(string smat, ofxMatrix3x3 mat) {
+	
+	size_t i, j;
+	string spaceconst = " ";
+	
+	i = smat.find(spaceconst, 0);
+	while(i != string::npos) {
+		
+		mat[j] = atof(smat.substr(i, smat.find(spaceconst, i) - i).c_str());
+		i = smat.find(spaceconst, i);
+		j++;
+	}
+}
+
+void ofxSVG::stringFromMatrix(string* smat, ofxMatrix3x3 mat) {
+	int i = 0;
+	stringstream s;
+	s << "matrix(";
+	while(i < 9) {
+		
+		s << mat[i] << " ";
+		i++;
+	}
+	s << ")";
+	//	int length = s.str().length();
+	smat->insert(0, s.str());
+}
+
+
