@@ -1288,6 +1288,12 @@ void ofxSVG::stroke(string colorHex, int weight) {
 
 void ofxSVG::fill(string colorHex) {
 
+	// figure out if it has an alpha
+	int rgb = strtol(("0x"+colorHex.substr(1, colorHex.length()-1)).c_str(), NULL, 0);
+	float r = (rgb >> 16) & 0xFF;
+	float g = (rgb >> 8) & 0xFF;
+	float b = (rgb) & 0xFF;
+	
 	currentAttributes["color"] = colorHex;
 }
 
