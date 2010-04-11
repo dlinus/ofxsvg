@@ -180,7 +180,7 @@ void ofxSVG::parseImage() {
 	x = atoi(svgXml.getAttribute("x", currentIteration).c_str());
 	y = atoi(svgXml.getAttribute("y", currentIteration).c_str());
 	ofImage tmpimg;
-	tmpimg.loadImage(path);w
+	tmpimg.loadImage(path);
 	//width="144" height="144"
 	ofxSVGImage *img = new ofxSVGImage;
 	img->tex = new ofTexture;
