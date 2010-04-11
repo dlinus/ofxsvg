@@ -161,6 +161,7 @@ void ofxSVG::parseLayer(){
         else if(name == "polygon") parsePolygon();
         else if(name == "text") parseText();
         else if(name == "path")parsePath();
+		else if(name == "image")parseImage();
         else if(name == "g"){
             svgXml.pushTag(i);
                 parseLayer();
@@ -168,6 +169,33 @@ void ofxSVG::parseLayer(){
         }
     }
 
+}
+
+void ofxSVG::parseImage() {
+	
+	string path = svgXml.getAttribute("xlink:href", currentIteration);
+	int imgWidth, imgHeight, x, y;
+	imgWidth = atoi(svgXml.getAttribute("width", currentIteration).c_str());
+	imgHeight = atoi(svgXml.getAttribute("height", currentIteration).c_str());
+	x = atoi(svgXml.getAttribute("x", currentIteration).c_str());
+	y = atoi(svgXml.getAttribute("y", currentIteration).c_str());
+	ofImage tmpimg;
+	tmpimg.loadImage(path);
+	//width="144" height="144"
+	ofxSVGImage *img = new ofxSVGImage;
+	img->tex = new ofTexture;
+	img->tex->allocate(tmpimg.width, tmpimg.height, GL_RGB);
+	img->tex->loadData(tmpimg.getPixels(), tmpimg.width, tmpimg.height, GL_RGB);
+	
+	img->dl.begin();
+	
+	img->renderMode  = ofxSVGRender_DisplayList;
+	
+	img->tex->draw(x, y, imgWidth, imgHeight);
+	
+	img->dl.end();
+	
+	layers[layers.size()-1].objects.push_back(img);
 }
 
 //-------------------------------------------------------------------------------------

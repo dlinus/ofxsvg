@@ -88,6 +88,11 @@ class ofxSVGPath : public ofxSVGObject {
 public:
 };
 
+class ofxSVGImage : public ofxSVGObject {
+public:
+	ofTexture *tex;
+};
+
 
 // LAYER
 //-------------------------------------------------

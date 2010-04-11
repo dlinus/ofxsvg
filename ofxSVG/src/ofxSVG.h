@@ -85,6 +85,7 @@ class ofxSVG{
         void parsePolygon();
         void parseText();
         void parsePath();
+		void parseImage();
 
         // Taken from Theo ofxSVGLoader
         //----------------------------------
