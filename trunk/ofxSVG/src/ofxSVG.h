@@ -69,7 +69,9 @@ class ofxSVG{
 
 		string      getLayerActive(string layerName);        /*not implemented*/
 		void saveToFile(string filename);	
-
+		ofxVec2f scaleFromMatrix(string matrix);
+	float scale(string scaleVal);
+	
 		vector< ofxSVGLayer >   layers;
     private:
 
@@ -89,7 +91,10 @@ class ofxSVG{
 
         // Taken from Theo ofxSVGLoader
         //----------------------------------
-        void pathToPoints(string pathStr, ofxSVGPath* obj);
+        void pathToVectorData(string pathStr, ofxSVGPath* obj);
+		void vectorDataToVertexs(ofxSVGPath* path, float resampleDist);
+		vector<ofPoint> singleBezierToPtsWithResample(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float resampleDist);
+		void drawVectorData(ofxSVGPath* path);
 
         // Matrix parsing
         //----------------------------------
