@@ -804,91 +804,99 @@ void ofxSVG::parseText(){
 //-------------------------------------------------------------------------------------
 
 void ofxSVG::parsePath(){
-    string pathStr = svgXml.getAttribute("d", currentIteration);
-    string sepPath = "";
-
-    for (int j = 0; j < pathStr.size(); j++){
-        char c = pathStr[j];
-
-        if ( c < 31 )continue;
-
-        if ( c == 'M' || c == 'm' ||
-                        c == 'L' || c == 'l' ||
-                        c == 'V' || c == 'v' ||
-                        c == 'H' || c == 'h' ||
-                        c == 'C' || c == 'c' ||
-                        c == 'S' || c == 's' ||
-                        c == 'z' || c == 'Z' ){
-            sepPath += "*";
-            sepPath.push_back(c);
-            //sepPath += "*";
-        }
-        else if (c == '-' || c == ' ' || c == ','){
-            if ( c == '-'){
-                if ( sepPath.length() > 0 && pathStr[currentIteration-1] >= '0' && pathStr[j-1] <= '9' ){
-                    sepPath.push_back('|');
-                }
-                sepPath.push_back(c);
-            }
-            else {
-                sepPath.push_back('|');
-            }
-        }
-        else {
-            sepPath.push_back(c);
-        }
-
-    }
-
-
-    string fill = svgXml.getAttribute("fill", currentIteration);
-    string stroke = svgXml.getAttribute("stroke", currentIteration);
-    string opacity = svgXml.getAttribute("opacity", currentIteration);
-    float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
-
-    ofxSVGPath* obj = new ofxSVGPath;
-
-    // Shape info
-    //--------------------------------
-
-    obj->type        = ofxSVGObject_Path;
-    obj->renderMode  = ofxSVGRender_DisplayList;
-    obj->name        = svgXml.getAttribute("id", currentIteration);
-
-    // Display List
-    //--------------------------------
-
-    obj->dl.begin();
-
-    if(fill!="none"){
-        ofFill();
-        if(opacity!="")
-            ofEnableAlphaBlending();
-        if(fill!=""){
-            int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
-            float r = (rgb >> 16) & 0xFF;
-            float g = (rgb >> 8) & 0xFF;
-            float b = (rgb) & 0xFF;
-            ofSetColor(r,g,b,alpha);
-        }
-        else ofSetColor(0,0,0,alpha);
-
-        pathToPoints(sepPath, obj);
-    }
-
-    if(stroke!="" && stroke!="none"){
-        string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
-        if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
-        ofNoFill();
-        int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
-        float r = (rgb >> 16) & 0xFF;
-        float g = (rgb >> 8) & 0xFF;
-        float b = (rgb) & 0xFF;
-        ofSetColor(r,g,b,alpha);
-
-        pathToPoints(sepPath, obj);
-
-        if(strokeWeight!="") ofSetLineWidth(1);
+		string pathStr = svgXml.getAttribute("d", currentIteration);
+		
+		string sepPath = "";
+		
+		for(int i = 0; i < pathStr.size(); i++){
+			char c = pathStr[i];
+			
+			if( c < 31 )continue;
+			
+			if( c == 'M' || c == 'm' ||
+			   c == 'L' || c == 'l' ||
+			   c == 'V' || c == 'v' ||
+			   c == 'H' || c == 'h' ||
+			   c == 'C' || c == 'c' ||
+			   c == 'S' || c == 's' ||
+			   c == 'z' || c == 'Z' )
+			{
+				sepPath += "*";
+				sepPath.push_back(c);
+				//sepPath += "*"; 
+			}else if(c == '-' || c == ' ' || c == ','){
+				if( c == '-'){
+					if( sepPath.length() > 0 && pathStr[i-1] >= '0' && pathStr[i-1] <= '9' ){
+						sepPath.push_back('|');
+					} 
+					sepPath.push_back(c);
+				}else{
+					sepPath.push_back('|');
+				}
+			}else{
+				sepPath.push_back(c);
+			}
+			
+		}
+		
+		
+		string fill = svgXml.getAttribute("fill", currentIteration);
+		string stroke = svgXml.getAttribute("stroke", currentIteration);
+		string opacity = svgXml.getAttribute("opacity", currentIteration);
+		float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
+		
+		ofxSVGPath* obj = new ofxSVGPath;
+		
+		// Shape info
+		//--------------------------------
+		
+		obj->type        = ofxSVGObject_Path;
+		obj->renderMode  = ofxSVGRender_DisplayList;
+		obj->name        = svgXml.getAttribute("id", currentIteration);
+		
+		
+		// Path to Vector Data
+		//--------------------------------
+		pathToVectorData(sepPath, obj);
+		
+		// Vector Data to vertexs
+		//--------------------------------
+		vectorDataToVertexs(obj, 0.1f);
+		
+		// Display List
+		//--------------------------------
+		
+		obj->dl.begin();
+		
+		if(fill!="none"){
+			ofFill();
+			if(opacity!="")
+				ofEnableAlphaBlending();
+			if(fill!=""){
+				int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+				float r = (rgb >> 16) & 0xFF;
+				float g = (rgb >> 8) & 0xFF;
+				float b = (rgb) & 0xFF;
+				ofSetColor(r,g,b,alpha);
+			}
+			else ofSetColor(0,0,0,alpha);
+			
+			drawVectorData(obj);
+		}
+		
+		if(stroke!="" && stroke!="none"){
+			string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
+			if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
+			ofNoFill();
+			int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+			float r = (rgb >> 16) & 0xFF;
+			float g = (rgb >> 8) & 0xFF;
+			float b = (rgb) & 0xFF;
+			ofSetColor(r,g,b,alpha);
+			
+			drawVectorData(obj);
+			
+			if(strokeWeight!="") ofSetLineWidth(1);
     }
 
 
@@ -897,9 +905,277 @@ void ofxSVG::parsePath(){
     layers[layers.size()-1].objects.push_back(obj);
 }
 
+vector<ofPoint> ofxSVG::singleBezierToPtsWithResample(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float resampleDist){
+	float   ax, bx, cx;
+	float   ay, by, cy;
+	float   t, t2, t3;
+	float   x, y;
+	
+	vector <ofPoint> outPts;
+	
+	// polynomial coefficients
+	cx = 3.0f * (x1 - x0);
+	bx = 3.0f * (x2 - x1) - cx;
+	ax = x3 - x0 - cx - bx;
+	
+	cy = 3.0f * (y1 - y0);
+	by = 3.0f * (y2 - y1) - cy;
+	ay = y3 - y0 - cy - by;
+	
+	float len = sqrt( (x3-x1)*(x3-x1) + (y3-y1)*(y3-y1) );
+	
+	int resolution = 2;
+	
+	if( resampleDist < 1 ){
+		resampleDist = 1;
+	}	
+	
+	if( len >= resampleDist * 2 ){
+		resolution = (len / resampleDist );
+	}else{
+		resolution = 6;
+	}
+	
+	for (int i = 0; i < resolution; i++){
+		t 	=  ofMap(i+1, 0, resolution+1, 0, 1.0);
+		t2 = t * t;
+		t3 = t2 * t;
+		x = (ax * t3) + (bx * t2) + (cx * t) + x0;
+		y = (ay * t3) + (by * t2) + (cy * t) + y0;
+		outPts.push_back(ofPoint(x, y));
+	}
+	
+	return outPts;
+}
+
+void ofxSVG::drawVectorData(ofxSVGPath* path){
+	ofBeginShape();								
+	for(int k = 0; k < path->vectorData.size(); k++){
+		if( path->vectorData[k].type == ofxSVGVector_Point ){
+			ofVertex(path->vectorData[k].p.x, path->vectorData[k].p.y);
+		}
+		else if( path->vectorData[k].type == ofxSVGVector_BezierPoint ){
+			ofBezierVertex(path->vectorData[k].c1.x, path->vectorData[k].c1.y, path->vectorData[k].c2.x, path->vectorData[k].c2.y, path->vectorData[k].p.x, path->vectorData[k].p.y);
+		}
+	}
+	ofEndShape(false);
+}
+
+void ofxSVG::pathToVectorData(string pathStr, ofxSVGPath* obj){
+	ofPoint drawPt;
+	
+	vector <string> commandStr = ofSplitString(pathStr, "*");
+	
+	for(int i = 0; i < commandStr.size(); i++){
+		if( commandStr[i].length() ==  0 )continue;
+		
+		string currStr = commandStr[i];
+		char command = currStr[0];
+		
+		currStr = currStr.substr(1, currStr.length()-1);
+		
+		//printf("[%c], curString is %s\n", command, currStr.c_str());
+		
+		vector <string> coordsStr = ofSplitString(currStr, "|");
+		vector <float> coords;
+		
+		for(int i = 0; i < coordsStr.size(); i++){
+			coords.push_back(ofToFloat(coordsStr[i]));
+		}
+		
+		int numP = coords.size();
+		
+		if( ( command == 'm' || command == 'M' ) && numP >= 2){
+			if( command == 'm'){
+				drawPt.x += coords[0];
+				drawPt.y += coords[1];				
+			}else{
+				drawPt.x = coords[0];
+				drawPt.y = coords[1];
+			}					
+			//currShape.addPoint(drawPt.x, drawPt.y);
+			obj->vectorData.push_back(ofxSVGPoint(drawPt.x, drawPt.y));
+		}
+		
+		if( ( command == 'v' || command == 'V' ) && numP >= 1 ){
+			
+			for(int j = 0; j < numP; j++){
+				
+				if( command == 'v'){
+					drawPt.y += coords[j+0];				
+				}else{
+					drawPt.y = coords[j+0];
+				}					
+				//currShape.addPoint(drawPt.x, drawPt.y);
+				obj->vectorData.push_back(ofxSVGPoint(drawPt.x, drawPt.y));
+			}
+		}
+		
+		if( ( command == 'h' || command == 'H' ) && numP >= 1 ){
+			
+			for(int j = 0; j < numP; j++){
+				
+				if( command == 'h'){
+					drawPt.x += coords[j+0];				
+				}else{
+					drawPt.x = coords[j+0];
+				}					
+				//currShape.addPoint(drawPt.x, drawPt.y);
+				obj->vectorData.push_back(ofxSVGPoint(drawPt.x, drawPt.y));
+			}
+		}
+		
+		if( ( command == 'l' || command == 'L' )  && numP >= 2 ){
+			
+			for(int j = 0; j < numP; j+=2){
+				
+				if( command == 'l'){
+					drawPt.x += coords[j+0];
+					drawPt.y += coords[j+1];				
+				}else{
+					drawPt.x = coords[j+0];
+					drawPt.y = coords[j+1];
+				}					
+				//currShape.addPoint(drawPt.x, drawPt.y);
+				obj->vectorData.push_back(ofxSVGPoint(drawPt.x, drawPt.y));
+			}
+		}
+		
+		if( ( command == 'c' || command == 'C' )  && numP >= 6 ){
+			
+			for(int j = 0; j < numP; j+=6){
+				
+				float c1x, c1y;
+				float c2x, c2y;
+				
+				if( command == 'c'){
+					c1x = drawPt.x + coords[j+0];
+					c1y = drawPt.y + coords[j+1];
+					c2x = drawPt.x + coords[j+2];
+					c2y = drawPt.y + coords[j+3];
+					drawPt.x += coords[j+4];
+					drawPt.y += coords[j+5];				
+				}else{
+					c1x = coords[j+0];
+					c1y = coords[j+1];
+					c2x = coords[j+2];
+					c2y = coords[j+3];
+					drawPt.x = coords[j+4];
+					drawPt.y = coords[j+5];
+				}					
+				//currShape.addBezier(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y);
+				obj->vectorData.push_back(ofxSVGPoint(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y));
+			}
+		}
+		
+		if( ( command == 's' || command == 'S' )  && numP >= 4 ){
+			
+			for(int j = 0; j < numP; j+=4){
+				
+				ofPoint prePoint = drawPt;
+				
+				ofPoint preHandle;
+				if( obj->vectorData.size() && obj->vectorData.back().type == ofxSVGVector_BezierPoint ){
+					preHandle = obj->vectorData.back().c2 - prePoint;
+				}else{
+					preHandle = drawPt - prePoint;
+				}
+				
+				float c1x, c1y;
+				float c2x, c2y;
+				
+				if( command == 's'){
+					c1x = prePoint.x - preHandle.x;
+					c1y = prePoint.y - preHandle.y;
+					
+					c2x = drawPt.x + coords[j+0];
+					c2y = drawPt.y + coords[j+1];
+					drawPt.x += coords[j+2];
+					drawPt.y += coords[j+3];				
+				}else{
+					c1x = prePoint.x - preHandle.x;
+					c1y = prePoint.y - preHandle.y;
+					
+					c2x = coords[j+0];
+					c2y = coords[j+1];
+					drawPt.x = coords[j+2];
+					drawPt.y = coords[j+3];
+				}					
+				//currShape.addBezier(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y);
+				obj->vectorData.push_back(ofxSVGPoint(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y));
+			}
+		}
+		
+	}
+}
+
+void ofxSVG::vectorDataToVertexs(ofxSVGPath* path, float resampleDist){	
+	int numPts = path->vectorData.size();
+	
+	ofxVec2f delta;
+	
+	vector <ofxSVGPoint> pts = path->vectorData;
+	
+	if( numPts >= 2 ){
+		
+		for(int k = 0; k < pts.size(); k++){					
+			
+			bool nAddPts = false;
+			float len = 0.0;
+			
+			if( k > 0 ){
+				delta		= pts[k].p - pts[k-1].p;
+				len			= delta.length();
+				if( len > resampleDist * 2 ){
+					nAddPts = true;
+				}
+			}
+			
+			if( nAddPts ){
+				
+				if( pts[k].type == ofxSVGVector_BezierPoint && k > 0 ){
+					
+					
+					vector <ofPoint> bezPts = singleBezierToPtsWithResample(pts[k-1].p.x,  pts[k-1].p.y,  
+																			pts[k].c1.x,  pts[k].c1.y, 
+																			pts[k].c2.x,  pts[k].c2.y,  
+																			pts[k].p.x,  pts[k].p.y, resampleDist);
+					
+					for(int i = 0; i < bezPts.size(); i++){
+						path->vertexs.push_back(bezPts[i]);
+					}	
+					
+				}else{
+					
+					int numToAdd = ((int)(len / resampleDist))-1;
+					
+					for(int i = 0; i < numToAdd; i++){
+						float pct = ofMap(i+1, 0, numToAdd+1, 0.0, 1.0);
+						
+						ofPoint iPnt = pts[k].p * pct + pts[k-1].p * (1.0-pct);
+						path->vertexs.push_back(iPnt); 
+					}
+					
+				}
+				
+			}
+			
+			path->vertexs.push_back(pts[k].p);
+			}
+			
+		}	
+}
+
 //-------------------------------------------------------------------------------------
+///// ---------------------------------------------------------------------------
+// BEGIN NEW
+///// ---------------------------------------------------------------------------
 
 
+
+///// ---------------------------------------------------------------------------
+// END NEW
+///// ---------------------------------------------------------------------------
 
 
 ofPoint ofxSVG::posFromMatrix(string matrix){
@@ -919,209 +1195,16 @@ float ofxSVG::rotFromMatrix(string matrix){
     return 0.0f;
 }
 
-// Taken from Theo ofxSVGLoader
-//--------------------------------------------------------------------
-void ofxSVG::pathToPoints(string pathStr, ofxSVGPath* obj){
-    ofPoint drawPt;
+ofxVec2f ofxSVG::scaleFromMatrix(string matrix) {
+	matrix = matrix.substr(7, matrix.length()-8);
+    vector<string> matrixStrings = ofSplitString(matrix, " ");
+    return ofxVec2f(ofToFloat(matrixStrings[1]), ofToFloat(matrixStrings[3]));	
+}
 
-    ofBeginShape();
-
-    vector <string> commandStr = ofSplitString(pathStr, "*");
-    bool lastPointIsBezier = false;
-    int points = 0;
-    ofPoint lastBezierC2;
-
-    for (int i = 0; i < commandStr.size(); i++)
-    {
-        if ( commandStr[i].length() ==  0 )continue;
-
-        string currStr = commandStr[i];
-        char command = currStr[0];
-
-        currStr = currStr.substr(1, currStr.length()-1);
-
-        //printf("[%c], curString is %s\n", command, currStr.c_str());
-
-        vector <string> coordsStr = ofSplitString(currStr, "|");
-        vector <float> coords;
-
-        for (int i = 0; i < coordsStr.size(); i++)
-        {
-            coords.push_back(ofToFloat(coordsStr[i]));
-        }
-
-        int numP = coords.size();
-
-        if ( ( command == 'm' || command == 'M' ) && numP >= 2)
-        {
-            if ( command == 'm')
-            {
-                drawPt.x += coords[0];
-                drawPt.y += coords[1];
-            }
-            else
-            {
-                drawPt.x = coords[0];
-                drawPt.y = coords[1];
-            }
-            ofVertex(drawPt.x, drawPt.y);
-            obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
-            lastPointIsBezier = false;
-            points++;
-        }
-
-        if ( ( command == 'v' || command == 'V' ) && numP >= 1 )
-        {
-
-            for (int j = 0; j < numP; j++)
-            {
-
-                if ( command == 'v')
-                {
-                    drawPt.y += coords[j+0];
-                }
-                else
-                {
-                    drawPt.y = coords[j+0];
-                }
-                ofVertex(drawPt.x, drawPt.y);
-                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
-                lastPointIsBezier = false;
-                points++;
-            }
-        }
-
-        if ( ( command == 'h' || command == 'H' ) && numP >= 1 )
-        {
-
-            for (int j = 0; j < numP; j++)
-            {
-
-                if ( command == 'h')
-                {
-                    drawPt.x += coords[j+0];
-                }
-                else
-                {
-                    drawPt.x = coords[j+0];
-                }
-                ofVertex(drawPt.x, drawPt.y);
-                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
-                lastPointIsBezier = false;
-                points++;
-            }
-        }
-
-        if ( ( command == 'l' || command == 'L' )  && numP >= 2 )
-        {
-
-            for (int j = 0; j < numP; j+=2)
-            {
-
-                if ( command == 'l')
-                {
-                    drawPt.x += coords[j+0];
-                    drawPt.y += coords[j+1];
-                }
-                else
-                {
-                    drawPt.x = coords[j+0];
-                    drawPt.y = coords[j+1];
-                }
-                ofVertex(drawPt.x, drawPt.y);
-                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y));
-                lastPointIsBezier = false;
-                points++;
-            }
-        }
-
-        if ( ( command == 'c' || command == 'C' )  && numP >= 6 )
-        {
-
-            for (int j = 0; j < numP; j+=6)
-            {
-
-                float c1x, c1y;
-                float c2x, c2y;
-
-                if ( command == 'c')
-                {
-                    c1x = drawPt.x + coords[j+0];
-                    c1y = drawPt.y + coords[j+1];
-                    c2x = drawPt.x + coords[j+2];
-                    c2y = drawPt.y + coords[j+3];
-                    drawPt.x += coords[j+4];
-                    drawPt.y += coords[j+5];
-                }
-                else
-                {
-                    c1x = coords[j+0];
-                    c1y = coords[j+1];
-                    c2x = coords[j+2];
-                    c2y = coords[j+3];
-                    drawPt.x = coords[j+4];
-                    drawPt.y = coords[j+5];
-                }
-                ofBezierVertex(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y);
-                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y,1));
-                lastBezierC2 = ofPoint(c2x, c2y);
-                lastPointIsBezier = true;
-                points++;
-            }
-        }
-
-        if ( ( command == 's' || command == 'S' )  && numP >= 4 )
-        {
-
-            for (int j = 0; j < numP; j+=4)
-            {
-
-                ofPoint prePoint = drawPt;
-
-                ofPoint preHandle;
-                if (points && lastPointIsBezier)
-                {
-                    preHandle = lastBezierC2 - prePoint;
-                }
-                else
-                {
-                    preHandle = drawPt - prePoint;
-                }
-
-                float c1x, c1y;
-                float c2x, c2y;
-
-                if ( command == 's')
-                {
-                    c1x = prePoint.x - preHandle.x;
-                    c1y = prePoint.y - preHandle.y;
-
-                    c2x = drawPt.x + coords[j+0];
-                    c2y = drawPt.y + coords[j+1];
-                    drawPt.x += coords[j+2];
-                    drawPt.y += coords[j+3];
-                }
-                else
-                {
-                    c1x = prePoint.x - preHandle.x;
-                    c1y = prePoint.y - preHandle.y;
-
-                    c2x = coords[j+0];
-                    c2y = coords[j+1];
-                    drawPt.x = coords[j+2];
-                    drawPt.y = coords[j+3];
-                }
-                ofBezierVertex(c1x, c1y, c2x, c2y, drawPt.x, drawPt.y);
-                obj->vertexs.push_back(ofPoint(drawPt.x, drawPt.y, 1));
-                lastPointIsBezier = true;
-                lastBezierC2 = ofPoint(c2x, c2y);
-                points++;
-            }
-        }
-
-    }
-
-    ofEndShape();
+float ofxSVG::scale(string scaleVal) {
+    string floatVal = scaleVal.substr(scaleVal.find("("));
+	floatVal = floatVal.substr(0, scaleVal.find(")"));
+    return ofToFloat(floatVal);
 }
 
 //--------------------------------------------------------------
