@@ -2,8 +2,8 @@
 /**
  *
  * WARNING, FYI, NOTA BENE, CUIDADO : This is experimental and not really ready yet.
- 
- * A
+ *
+ * Much of this builds on nanosvg and so is LGPL'd hence the license below:
  *
  */
 
