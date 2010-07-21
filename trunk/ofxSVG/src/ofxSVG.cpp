@@ -161,6 +161,7 @@ void ofxSVG::parseLayer(){
         else if(name == "polygon") parsePolygon();
         else if(name == "text") parseText();
         else if(name == "path")parsePath();
+		//else if(name == "path")parsePathExperimental(); // not using this yet JN
 		else if(name == "image")parseImage();
         else if(name == "g"){
             svgXml.pushTag(i);
@@ -897,12 +898,95 @@ void ofxSVG::parsePath(){
 			drawVectorData(obj);
 			
 			if(strokeWeight!="") ofSetLineWidth(1);
-    }
+		}
 
 
-    obj->dl.end();
+		obj->dl.end();
+	
+		layers[layers.size()-1].objects.push_back(obj);
+}
 
-    layers[layers.size()-1].objects.push_back(obj);
+void ofxSVG::parsePathExperimental() {
+	string pathStr = svgXml.getAttribute("d", currentIteration);
+	
+	ofxComplexSVGPath* obj = new ofxComplexSVGPath();
+	
+	svgPathParser parser(obj);
+	
+	const char* c = pathStr.c_str();
+	
+	parser.parse(&c);
+	
+	string fill = svgXml.getAttribute("fill", currentIteration);
+	string stroke = svgXml.getAttribute("stroke", currentIteration);
+	string opacity = svgXml.getAttribute("opacity", currentIteration);
+	float alpha = (opacity=="") ? 255.0f : ofToFloat(opacity) * 255.0f;
+	
+	// Shape info
+	//--------------------------------
+	
+	//obj->type        = ofxComplexSVGPath;
+	obj->renderMode  = ofxSVGRender_DisplayList;
+	obj->name        = svgXml.getAttribute("id", currentIteration);
+	
+	// Display List
+	//--------------------------------
+	
+	obj->dl.begin();
+	
+	if(fill!="none"){
+		ofFill();
+		if(opacity!="")
+			ofEnableAlphaBlending();
+		if(fill!=""){
+			int rgb = strtol(("0x"+fill.substr(1, fill.length()-1)).c_str(), NULL, 0);
+			float r = (rgb >> 16) & 0xFF;
+			float g = (rgb >> 8) & 0xFF;
+			float b = (rgb) & 0xFF;
+			ofSetColor(r,g,b,alpha);
+		}
+		else ofSetColor(0,0,0,alpha);
+		
+		drawVectorDataExperimental(obj);
+	}
+	
+	if(stroke!="" && stroke!="none"){
+		string strokeWeight = svgXml.getAttribute("stroke-width", currentIteration);
+		if(strokeWeight!="") ofSetLineWidth(ofToInt(strokeWeight));
+		ofNoFill();
+		int rgb = strtol(("0x"+stroke.substr(1, stroke.length()-1)).c_str(), NULL, 0);
+		float r = (rgb >> 16) & 0xFF;
+		float g = (rgb >> 8) & 0xFF;
+		float b = (rgb) & 0xFF;
+		ofSetColor(r,g,b,alpha);
+		
+		drawVectorDataExperimental(obj);
+		
+		if(strokeWeight!="") ofSetLineWidth(1);
+	}
+	
+	
+	obj->dl.end();
+	
+	layers[layers.size()-1].objects.push_back(obj);
+	
+}
+
+void ofxSVG::drawVectorDataExperimental(ofxComplexSVGPath* object) {
+	
+	for(int k = 0; k < object->paths.size(); k++){
+		vector<ofxVec2f> *vec = object->paths.at(k);
+		printf(" size %i ", vec->size());
+		if(vec->size() < 1000) {
+		ofBeginShape();
+			for(int l = 0; l < vec->size(); l++) {
+					ofxVec2f pt = vec->at(l);
+					ofVertex(pt.x, pt.y);
+			}
+		ofEndShape(false);
+		}
+	}
+	
 }
 
 vector<ofPoint> ofxSVG::singleBezierToPtsWithResample(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float resampleDist){
@@ -1422,13 +1506,6 @@ void ofxSVG::setOpacity(float percent) {
 }
 
 void ofxSVG::translate(float tx, float ty) {
-
-	/*	//one way to do this
-	stringstream s;
-	s << "transform(translate(" << tx << " " << ")";
-	currentAttributes["translation"] += " "+s.str()+")";*/
-	
-	//another
 	
 	if(currentAttributes["matrix"] != "") {
 		ofxMatrix3x3 m = matrices[matrices.size() - 1];
@@ -1440,11 +1517,6 @@ void ofxSVG::translate(float tx, float ty) {
 	}
 }
 void ofxSVG::rotate(float r) {
-	
-	// one way to do this
-	//stringstream s;
-	//s << "rotation(" << r << ")";
-	//currentAttributes["rotation"] = s.str(); 
 
 	if(currentAttributes["matrix"] != "") {
 		ofxMatrix3x3 m = matrices[matrices.size() - 1];

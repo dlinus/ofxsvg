@@ -1,6 +1,9 @@
 #ifndef OFX_SVGTYPES
 #define OFX_SVGTYPES
 
+#include "ofxVec2f.h"
+#include "ofxDisplayList.h"
+
 enum {
     ofxSVGObject_Text,
     ofxSVGObject_Rectangle,
@@ -108,6 +111,11 @@ public:
 class ofxSVGPath : public ofxSVGObject {
 public:
 	vector<ofxSVGPoint> vectorData;
+};
+
+class ofxComplexSVGPath : public ofxSVGObject {
+	public:
+		vector<vector<ofxVec2f>*> paths;
 };
 
 class ofxSVGImage : public ofxSVGObject {

@@ -6,6 +6,7 @@
 #include "ofMain.h"
 #include "ofxDisplayList.h"
 //#include "ofxFTGLFont.h"
+#include "svgPathParser.h"
 
 #include "ofxSVGXml.h"
 #include "ofxSVGTypes.h"
@@ -34,37 +35,36 @@ class ofxSVG{
 
         // Save & Drawing to svg
         //----------------------------------
-		void save(string svgPath);                          /*not implemented*/
-		void addLayer(string layerName);                    /*not implemented*/
+		void save(string svgPath);                          
+		void addLayer(string layerName);                    
+		void rect(float x, float y, float w, float h);      
+		void ellipse(float x, float y, float rx, float ry);
+		void circle(float x, float y, float r);
 
-		void rect(float x, float y, float w, float h);      /*not implemented*/
-		void ellipse(float x, float y, float rx, float ry); /*not implemented*/
-		void circle(float x, float y, float r);             /*not implemented*/
+		void beginPolygon();                   
+		void endPolygon();                     
+		void beginPath();                      
+		void endPath();                        
 
-		void beginPolygon();                                /*not implemented*/
-		void endPolygon();                                  /*not implemented*/
-		void beginPath();                                   /*not implemented*/
-		void endPath();                                     /*not implemented*/
-
-		void vertex(float x, float y);                      /*not implemented*/
-		//void bezierVertex(float x, float y);                /*not implemented*/
+		void vertex(float x, float y);
+		//void bezierVertex(float x, float y);                
 		void bezierVertex(float x0, float y0, float x1, float y1);
 		void bezierQuadraticVertex(float x0, float y0, float x1, float y1);
 		void bezierVertex(float x0, float y0, float x1, float y1, float x2, float y2);
-		void stroke(string colorHex, int weight);                       /*not implemented*/
-		void fill(string colorHex);                         /*not implemented*/
+		void stroke(string colorHex, int weight);                       
+		void fill(string colorHex);                         
 
-		void noFill();                                      /*not implemented*/
-		void noStroke();                                    /*not implemented*/
+		void noFill();                                      
+		void noStroke();                                    
 
-		void setOpacity(float percent);                     /*not implemented*/
+		void setOpacity(float percent);                     
 
-		void translate(float tx, float ty);                 /*not implemented*/
+		void translate(float tx, float ty);
 		void rotate(float r);
 
 		void pushMatrix();                                  /*not implemented*/
 		void popMatrix();                                   /*not implemented*/
-
+		
 		void setLayerActive(string layerName);               /*not implemented*/
 
 		string      getLayerActive(string layerName);        /*not implemented*/
@@ -87,6 +87,7 @@ class ofxSVG{
         void parsePolygon();
         void parseText();
         void parsePath();
+		void parsePathExperimental();
 		void parseImage();
 
         // Taken from Theo ofxSVGLoader
@@ -95,6 +96,9 @@ class ofxSVG{
 		void vectorDataToVertexs(ofxSVGPath* path, float resampleDist);
 		vector<ofPoint> singleBezierToPtsWithResample(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float resampleDist);
 		void drawVectorData(ofxSVGPath* path);
+	
+		void drawVectorDataExperimental(ofxComplexSVGPath* object);
+
 
         // Matrix parsing
         //----------------------------------
