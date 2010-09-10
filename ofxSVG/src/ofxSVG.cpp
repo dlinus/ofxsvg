@@ -906,12 +906,16 @@ void ofxSVG::parsePath(){
 		layers[layers.size()-1].objects.push_back(obj);
 }
 
+/*
+ * JN - This is still experimental and not quite ready for primetime, however, feel free to play with it
+ */
+
 void ofxSVG::parsePathExperimental() {
 	string pathStr = svgXml.getAttribute("d", currentIteration);
 	
 	ofxComplexSVGPath* obj = new ofxComplexSVGPath();
 	
-	svgPathParser parser(obj);
+	ofxSVGPathParser parser(obj);
 	
 	const char* c = pathStr.c_str();
 	

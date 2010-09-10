@@ -6,7 +6,7 @@
 #include "ofMain.h"
 #include "ofxDisplayList.h"
 //#include "ofxFTGLFont.h"
-#include "svgPathParser.h"
+#include "ofXSVGPathParser.h"
 
 #include "ofxSVGXml.h"
 #include "ofxSVGTypes.h"
