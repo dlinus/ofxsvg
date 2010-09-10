@@ -25,7 +25,7 @@ public:
 	
 	ofxComplexSVGPath* pathInstance;
 	
-	svgPathParser(ofxComplexSVGPath* p) {
+	ofxSVGPathParser(ofxComplexSVGPath* p) {
 		pathInstance = p;
 	}
 	
